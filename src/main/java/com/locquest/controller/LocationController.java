@@ -3,44 +3,27 @@ package com.locquest.controller;
 import com.locquest.dto.UpLoadLocationRequest;
 import com.locquest.entity.LocationEntity;
 import com.locquest.service.LocationService;
+import com.locquest.service.S3Uploader;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.io.IOException;
 
 @RestController
-@RequestMapping("/location")
+@Getter
 @RequiredArgsConstructor
+@RequestMapping("/location")
 public class LocationController {
-
     private final LocationService locationService;
+    private final S3Uploader s3Uploader;
 
-    @PostMapping("/upload")
-    public ResponseEntity<LocationEntity> uploadLocation(
-            @RequestPart("locationData") UpLoadLocationRequest request,
-            @RequestPart(value = "image", required = false) MultipartFile imageFile) {
-        
-        LocationEntity location = locationService.uploadLocation(request, imageFile);
-        return ResponseEntity.ok(location);
-    }
+    @PostMapping("/uploadLocation")
+    public ResponseEntity<LocationEntity> uploadLocation(@ModelAttribute UpLoadLocationRequest request) throws IOException {
+        String savedPath = s3Uploader.upload(request.getImage());
+        LocationEntity location = locationService.createLocation(request, savedPath);
 
-    @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<LocationEntity>> getLocationsByCategory(@PathVariable Long categoryId) {
-        List<LocationEntity> locations = locationService.getLocationsByCategory(categoryId);
-        return ResponseEntity.ok(locations);
-    }
-
-    @GetMapping("/all")
-    public ResponseEntity<List<LocationEntity>> getAllLocations() {
-        List<LocationEntity> locations = locationService.getAllLocations();
-        return ResponseEntity.ok(locations);
-    }
-
-    @GetMapping("/{locationId}")
-    public ResponseEntity<LocationEntity> getLocationById(@PathVariable Long locationId) {
-        LocationEntity location = locationService.getLocationById(locationId);
         return ResponseEntity.ok(location);
     }
 }
