@@ -94,4 +94,69 @@ public class GameService {
     public List<CategoryEntity> getAllCategories() {
         return categoryRepository.findAll();
     }
+
+    // 게임 생성 (GameController용)
+    public GameEntity createGame(GameStartRequest request) {
+        UserEntity user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        CategoryEntity category = categoryRepository.findById(request.getLocCategory())
+                .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다."));
+
+        GameEntity game = GameEntity.builder()
+                .user(user)
+                .gameMode(request.getGameMode())
+                .startTime(request.getStartTime())
+                .gameDate(request.getGameDate())
+                .locCategory(category)
+                .success(false)
+                .locCount(0)
+                .hintCount(0)
+                .build();
+
+        return gameRepository.save(game);
+    }
+
+    // 카테고리별 랜덤 위치 조회
+    public List<LocationEntity> getRandomLocationsByCategory(Long categoryId) {
+        return locationRepository.findAll().stream()
+                .filter(loc -> loc.getCategory().getCategoryId().equals(categoryId))
+                .limit(5)
+                .toList();
+    }
+
+    // 완료 기록
+    public void recordComplete(SendSuccessRequest request) {
+        // TODO: CompleteEntity 저장 로직 구현
+    }
+
+    // 성공 카운트
+    public void countSuccess(SendSuccessRequest request) {
+        // TODO: 성공 카운트 증가 로직 구현
+    }
+
+    // 게임 종료
+    public void finishGame(EndGameRequest request) {
+        GameEntity game = gameRepository.findById(request.getGameId())
+                .orElseThrow(() -> new RuntimeException("게임을 찾을 수 없습니다."));
+        game.setSuccess(true);
+        game.setEndTime(LocalDateTime.now());
+        gameRepository.save(game);
+    }
+
+    // 실패 위치 처리
+    public void failedLocations(List<Long> failedLocationIds) {
+        // TODO: 실패 위치 처리 로직 구현
+    }
+
+    // 시간 계산
+    public Double calculateTime(EndGameRequest request) {
+        GameEntity game = gameRepository.findById(request.getGameId())
+                .orElseThrow(() -> new RuntimeException("게임을 찾을 수 없습니다."));
+        
+        if (game.getStartTime() != null && game.getEndTime() != null) {
+            return (double) java.time.Duration.between(game.getStartTime(), game.getEndTime()).getSeconds();
+        }
+        return 0.0;
+    }
 }
