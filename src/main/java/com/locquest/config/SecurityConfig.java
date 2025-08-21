@@ -22,7 +22,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/", "/health").permitAll()          // 헬스체크 허용
                         .requestMatchers("/auth/**").permitAll()             // 로그인/회원가입 허용
-                        .requestMatchers("/game/**").permitAll()            // 게임 API 허용
+                        .requestMatchers(HttpMethod.GET, "/game/**").permitAll()   // 게임 GET API 허용
+                        .requestMatchers(HttpMethod.POST, "/game/**").permitAll()  // 게임 POST API 허용
                         .requestMatchers("/location/**").permitAll()         // 위치 API 허용
                         .requestMatchers("/ranking/**").permitAll()          // 랭킹 API 허용
                         .requestMatchers("/h2-console/**").permitAll()       // H2 콘솔 허용
