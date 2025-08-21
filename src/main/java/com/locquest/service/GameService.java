@@ -28,8 +28,15 @@ public class GameService {
         try {
             System.out.println("사용자 조회 시작: " + request.getUserId());
             UserEntity user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + request.getUserId()));
-            System.out.println("사용자 조회 완료: " + user.getNickname());
+                    .orElseGet(() -> {
+                        System.out.println("사용자가 존재하지 않음. 임시 사용자 생성: " + request.getUserId());
+                        UserEntity newUser = new UserEntity();
+                        newUser.setUserId(request.getUserId());
+                        newUser.setNickname("임시사용자" + request.getUserId());
+                        newUser.setProfileImage("https://example.com/default-profile.jpg");
+                        return userRepository.save(newUser);
+                    });
+            System.out.println("사용자 조회/생성 완료: " + user.getNickname());
 
             System.out.println("카테고리 조회 시작: " + request.getLocCategory());
             CategoryEntity category = categoryRepository.findById(request.getLocCategory())
