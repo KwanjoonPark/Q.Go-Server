@@ -1,15 +1,24 @@
-FROM gradle:8.5-jdk21 AS build
+FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
 
 # Gradle wrapper와 소스 코드 복사
 COPY . .
 
-# Gradle 빌드 실행 (gradle 명령어 직접 사용)
+# Gradle 설치 및 빌드
+RUN apt-get update && apt-get install -y wget unzip && \
+    wget https://services.gradle.org/distributions/gradle-8.5-bin.zip && \
+    unzip gradle-8.5-bin.zip && \
+    mv gradle-8.5 /opt/gradle && \
+    rm gradle-8.5-bin.zip
+
+ENV PATH="/opt/gradle/bin:${PATH}"
+
+# Gradle 빌드 실행
 RUN gradle build -x test
 
 # 런타임 이미지
-FROM openjdk:21-jre-slim
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
