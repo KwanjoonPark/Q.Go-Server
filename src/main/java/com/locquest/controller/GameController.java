@@ -40,20 +40,31 @@ public class GameController {
 
     @PostMapping(value = "/startGame", produces = "application/json; charset=UTF-8")
     public ResponseEntity<GameStartResponse> startGame(@RequestBody GameStartRequest request) {
+        try {
+            System.out.println("startGame 요청 받음: " + request);
+            System.out.println("userId: " + request.getUserId());
+            System.out.println("locCategory: " + request.getLocCategory());
+            System.out.println("gameMode: " + request.getGameMode());
 
+            // 게임 생성
+            GameEntity savedGame = gameService.createGame(request);
+            System.out.println("게임 생성 완료: " + savedGame.getGameId());
 
-        // 게임 생성
-        GameEntity savedGame = gameService.createGame(request);
+            // 랜덤으로 위치 사진 5개 뽑기
+            List<LocationEntity> locations = gameService.getRandomLocationsByCategory(savedGame.getLocCategory().getCategoryId());
+            System.out.println("위치 데이터 조회 완료: " + locations.size() + "개");
 
-        // 랜덤으로 위치 사진 5개 뽑기
-        List<LocationEntity> locations = gameService.getRandomLocationsByCategory(savedGame.getLocCategory().getCategoryId());
+            GameStartResponse response = new GameStartResponse();
+            response.setGameId(savedGame.getGameId());
+            response.setLocCategory(savedGame.getLocCategory().getCategoryId());
+            response.setLocationList(locations);
 
-        GameStartResponse response = new GameStartResponse();
-        response.setGameId(savedGame.getGameId());
-        response.setLocCategory(savedGame.getLocCategory().getCategoryId());
-        response.setLocationList(locations);
-
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("startGame 에러: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("게임 생성에 실패했습니다: " + e.getMessage());
+        }
     }
 
     @PostMapping("/sendSuccess")

@@ -25,30 +25,62 @@ public class GameService {
     private final CompleteRepository completeRepository;
 
     public GameEntity createGame(GameStartRequest request) {
-        UserEntity user = userRepository.findById(request.getUserId()).orElseThrow();
-        CategoryEntity category = categoryRepository.findById(request.getLocCategory()).orElseThrow();
+        try {
+            System.out.println("사용자 조회 시작: " + request.getUserId());
+            UserEntity user = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + request.getUserId()));
+            System.out.println("사용자 조회 완료: " + user.getNickname());
 
-        GameEntity game = GameEntity.builder()
-                .user(user)
-                .gameMode(request.getGameMode())
-                .gameDate(request.getGameDate())
-                .startTime(request.getStartTime())
-                .locCategory(category)
-                .build();
+            System.out.println("카테고리 조회 시작: " + request.getLocCategory());
+            CategoryEntity category = categoryRepository.findById(request.getLocCategory())
+                    .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다: " + request.getLocCategory()));
+            System.out.println("카테고리 조회 완료: " + category.getCategoryName());
 
-        return gameRepository.save(game);
+            GameEntity game = GameEntity.builder()
+                    .user(user)
+                    .gameMode(request.getGameMode())
+                    .gameDate(request.getGameDate())
+                    .startTime(request.getStartTime())
+                    .locCategory(category)
+                    .build();
+
+            System.out.println("게임 엔티티 저장 시작");
+            GameEntity savedGame = gameRepository.save(game);
+            System.out.println("게임 엔티티 저장 완료: " + savedGame.getGameId());
+            
+            return savedGame;
+        } catch (Exception e) {
+            System.err.println("createGame 에러: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public List<LocationEntity> getRandomLocationsByCategory(Long categoryId) {
-        CategoryEntity category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("카테고리 없음"));
+        try {
+            System.out.println("카테고리별 위치 조회 시작: " + categoryId);
+            CategoryEntity category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("카테고리 없음: " + categoryId));
 
-        List<LocationEntity> allLocations = locationRepository.findByCategory(category);
+            List<LocationEntity> allLocations = locationRepository.findByCategory(category);
+            System.out.println("해당 카테고리의 전체 위치 수: " + allLocations.size());
 
-        Collections.shuffle(allLocations); // ✅ 섞고
-        return allLocations.stream()
-                .limit(5) // ✅ 앞에서 5개만 추출
-                .toList();
+            if (allLocations.isEmpty()) {
+                throw new RuntimeException("해당 카테고리에 위치 데이터가 없습니다: " + categoryId);
+            }
+
+            Collections.shuffle(allLocations); // ✅ 섞고
+            List<LocationEntity> result = allLocations.stream()
+                    .limit(5) // ✅ 앞에서 5개만 추출
+                    .toList();
+            
+            System.out.println("랜덤 선택된 위치 수: " + result.size());
+            return result;
+        } catch (Exception e) {
+            System.err.println("getRandomLocationsByCategory 에러: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public CompleteEntity recordComplete(SendSuccessRequest request) {
