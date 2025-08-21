@@ -1,7 +1,2 @@
 [build]
-builder = "dockerfile"
-
-[deploy]
-startCommand = "java -Dserver.port=$PORT -Dspring.profiles.active=railway -jar app.jar"
-
-# Force new build - updated Dockerfile
+builder = "nixpacks"

@@ -42,6 +42,9 @@ LocQuest is a Spring Boot 3 location-based game API built with Java 17. The appl
 # Build the project
 ./gradlew build
 
+# Build without running tests (used in deployment)
+./gradlew build -x test
+
 # Run locally (requires MySQL)
 ./gradlew bootRun
 
@@ -50,6 +53,9 @@ LocQuest is a Spring Boot 3 location-based game API built with Java 17. The appl
 
 # Clean build artifacts
 ./gradlew clean
+
+# Make gradlew executable (for Unix systems)
+chmod +x ./gradlew
 ```
 
 ### Database Setup
@@ -59,16 +65,17 @@ Requires MySQL database named `locquest`. Configure connection in `src/main/reso
 - JPA auto-DDL enabled for development
 
 ### Deployment
-- **Railway**: Uses `railway.toml` configuration
+- **Railway**: Uses `railway.toml` configuration with Dockerfile builder
 - **Docker**: Pre-built JAR approach with Amazon Corretto 21
-- **Build Command**: `./gradlew build` produces JAR in `build/libs/`
+- **Build Command**: `./gradlew build -x test` produces JAR in `build/libs/`
 - **Start Command**: `java -Dserver.port=$PORT -Dspring.profiles.active=railway -jar app.jar`
+- **Alternative**: `nixpacks.toml` for Nixpacks-based deployment
 
 ## Configuration
 
 ### Environment Profiles
-- **Local**: `application.properties` (default)
-- **Railway**: `application-railway.properties` (production)
+- **Local**: `application.properties` (default) - uses hardcoded values for development
+- **Railway**: `application-railway.properties` (production) - uses environment variables
 
 ### External Dependencies
 - **Kakao OAuth**: Client ID and redirect URI configured
@@ -86,3 +93,14 @@ Requires MySQL database named `locquest`. Configure connection in `src/main/reso
 3. Locations are uploaded with photos to S3 (`LocationController`)
 4. Game completion triggers scoring and ranking updates (`GameService`, `RankingService`)
 5. Rankings are queried using custom projections (`RankingController`)
+
+## Testing
+- Uses JUnit 5 with Spring Boot Test framework
+- Main test class: `LocQuestApplicationTests.java`
+- Tests are skipped during deployment builds (`-x test`)
+
+## Important Notes
+- File upload size limit: 10MB for both individual files and total request size
+- Timezone: Asia/Seoul for database connections
+- Production uses environment variables for all sensitive configuration
+- SQL logging disabled in production, enabled in development

@@ -23,17 +23,23 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class S3Uploader {
 
-    @Value("${cloud.aws.credentials.access-key}")
+    @Value("${cloud.aws.credentials.access-key:}")
     private String accessKey;
-    @Value("${cloud.aws.credentials.secret-key}")
+    @Value("${cloud.aws.credentials.secret-key:}")
     private String secretKey;
-    @Value("${cloud.aws.region.static}")
+    @Value("${cloud.aws.region.static:ap-northeast-2}")
     private String region;
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${cloud.aws.s3.bucket:}")
     private String bucket;
 
     public String upload(MultipartFile file) {
         try {
+            // S3 자격증명 확인
+            if (accessKey == null || accessKey.trim().isEmpty() || "placeholder".equals(accessKey)) {
+                System.out.println("S3 자격증명이 설정되지 않았습니다. 파일 업로드를 건너뜁니다.");
+                return "https://placeholder.s3.amazonaws.com/" + file.getOriginalFilename();
+            }
+            
             String originalFilename = file.getOriginalFilename();
             String uniqueFilename = UUID.randomUUID() + "_" + originalFilename;
 

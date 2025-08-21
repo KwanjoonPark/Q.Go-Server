@@ -5,103 +5,93 @@ import com.locquest.entity.*;
 import com.locquest.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class GameService {
 
     private final GameRepository gameRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
-    private final CompleteRepository completeRepository;
 
-    public GameEntity createGame(GameStartRequest request) {
-        UserEntity user = userRepository.findById(request.getUserId()).orElseThrow();
-        CategoryEntity category = categoryRepository.findById(request.getLocCategory()).orElseThrow();
+    public GameStartResponse startGame(GameStartRequest request) {
+        // 사용자 조회
+        UserEntity user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
+        // 카테고리 조회
+        CategoryEntity category = categoryRepository.findById(request.getLocCategory())
+                .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다."));
+
+        // 게임 생성
         GameEntity game = GameEntity.builder()
                 .user(user)
                 .gameMode(request.getGameMode())
-                .gameDate(request.getGameDate())
                 .startTime(request.getStartTime())
+                .gameDate(request.getGameDate())
                 .locCategory(category)
+                .success(false)
+                .locCount(0)
+                .hintCount(0)
                 .build();
 
-        return gameRepository.save(game);
+        GameEntity savedGame = gameRepository.save(game);
+
+        // 해당 카테고리의 위치 목록 조회
+        List<LocationEntity> locations = locationRepository.findAll().stream()
+                .filter(loc -> loc.getCategory().getCategoryId().equals(category.getCategoryId()))
+                .toList();
+
+        // 응답 생성
+        GameStartResponse response = new GameStartResponse();
+        response.setGameId(savedGame.getGameId());
+        response.setLocCategory(request.getLocCategory());
+        response.setLocationList(locations);
+
+        return response;
     }
 
-    public List<LocationEntity> getRandomLocationsByCategory(Long categoryId) {
-        CategoryEntity category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("카테고리 없음"));
+    public EndGameResponse endGame(EndGameRequest request) {
+        // 게임 조회
+        GameEntity game = gameRepository.findById(request.getGameId())
+                .orElseThrow(() -> new RuntimeException("게임을 찾을 수 없습니다."));
 
-        List<LocationEntity> allLocations = locationRepository.findByCategory(category);
+        // 게임 결과 업데이트
+        game.setEndTime(request.getEndTime());
+        game.setSuccess(request.getSuccess());
+        game.setLocCount(request.getLocCount());
+        game.setHintCount(request.getHintCount());
 
-        Collections.shuffle(allLocations); // ✅ 섞고
-        return allLocations.stream()
-                .limit(5) // ✅ 앞에서 5개만 추출
+        gameRepository.save(game);
+
+        // 경과 시간 계산 (초 단위)
+        long elapsedSeconds = java.time.Duration.between(game.getStartTime(), request.getEndTime()).getSeconds();
+        
+        // 응답 생성
+        EndGameResponse response = new EndGameResponse((double) elapsedSeconds);
+
+        return response;
+    }
+
+    // 사용자의 게임 목록 조회
+    public List<GameEntity> getUserGames(Long userId) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        
+        return gameRepository.findAll().stream()
+                .filter(game -> game.getUser().getUserId().equals(userId))
                 .toList();
     }
 
-    public CompleteEntity recordComplete(SendSuccessRequest request) {
-        UserEntity user = userRepository.findById(request.getUserId()).orElseThrow();
-        LocationEntity location = locationRepository.findById(request.getLocId()).orElseThrow();
-        GameEntity game = gameRepository.findById(request.getGameId()).orElseThrow();
-
-        CompleteEntity complete = CompleteEntity.builder()
-                .user(user)
-                .location(location)
-                .game(game)
-                .completeDate(request.getCompleteDate())
-                .build();
-
-        return completeRepository.save(complete);
-    }
-
-    public LocationEntity countSuccess(SendSuccessRequest request) {
-        LocationEntity location = locationRepository.findById(request.getLocId()).orElseThrow();
-        location.setLocSuccessed(location.getLocSuccessed() + 1);
-        return locationRepository.save(location);
-    }
-
-    public GameEntity finishGame(EndGameRequest request) {
-        GameEntity game = gameRepository.findById(request.getGameId()).orElseThrow();
-        game.setHintCount(request.getHintCount());
-        game.setLocCount(request.getLocCount());
-        game.setSuccess(request.getSuccess());
-        game.setEndTime(request.getEndTime());
-        return gameRepository.save(game);
-    }
-
-    public List<LocationEntity> failedLocations(List<Long> locationList) {
-        List<LocationEntity> updatedList = new ArrayList<>();
-        for (Long failedLocation : locationList) {
-            LocationEntity location = locationRepository.findById(failedLocation).orElseThrow();
-            location.setLocFailed(location.getLocFailed() + 1);
-            LocationEntity saved = locationRepository.save(location);
-            updatedList.add(saved);
-        }
-
-        return updatedList;
-    }
-
+    // 카테고리 목록 조회
     public List<CategoryEntity> getAllCategories() {
         return categoryRepository.findAll();
-    }
-
-    public Double calculateTime(EndGameRequest request) {
-        GameEntity game = gameRepository.findById(request.getGameId()).orElseThrow();
-        LocalDateTime startTime = game.getStartTime();
-        LocalDateTime endTime = request.getEndTime();
-        Duration dur = Duration.between(startTime, endTime);
-        return dur.toMillis() / 1_000.0;
     }
 }

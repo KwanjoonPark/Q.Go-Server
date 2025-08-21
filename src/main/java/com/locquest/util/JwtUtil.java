@@ -8,17 +8,53 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    // application.properties 에 정의된 비밀키 (Base64로 인코딩되어 있어야 합니다)
+    // application.properties 에 정의된 비밀키
     @Value("${jwt.secret}")
     private String secretKey;
 
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+        // 문자열이 Base64인지 확인하고 처리
+        try {
+            // Base64로 시도
+            byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (Exception e) {
+            // Base64가 아니면 일반 문자열로 처리
+            byte[] keyBytes = secretKey.getBytes();
+            // 최소 32바이트 보장 (HS256 요구사항)
+            if (keyBytes.length < 32) {
+                String paddedSecret = secretKey;
+                while (paddedSecret.getBytes().length < 32) {
+                    paddedSecret += paddedSecret;
+                }
+                keyBytes = paddedSecret.substring(0, 64).getBytes(); // 64자로 자름
+            }
+            return Keys.hmacShaKeyFor(keyBytes);
+        }
+    }
+
+    /**
+     * userId로 JWT 토큰을 생성합니다.
+     */
+    public String generateToken(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("UserId cannot be null");
+        }
+
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 86400000); // 24시간
+
+        return Jwts.builder()
+                .setSubject(String.valueOf(userId))
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
     }
 
     /**
