@@ -26,6 +26,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .filter(MappingJackson2HttpMessageConverter.class::isInstance)
                 .map(MappingJackson2HttpMessageConverter.class::cast)
                 .forEach(conv -> {
+                    // UTF-8 인코딩 설정
+                    conv.setDefaultCharset(StandardCharsets.UTF_8);
+                    
                     var mapper = conv.getObjectMapper();
                     // LocalDateTime 모듈 등록
                     mapper.registerModule(new JavaTimeModule());

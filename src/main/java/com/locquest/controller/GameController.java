@@ -8,6 +8,8 @@ import com.locquest.repository.CategoryRepository;
 import com.locquest.service.GameService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +29,13 @@ public class GameController {
         GetCategoryResponse response = new GetCategoryResponse();
         response.setCategoryList(categoryList);
 
-        return ResponseEntity.ok(response);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Content-Type", "application/json; charset=UTF-8");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(response);
     }
 
     @PostMapping(value = "/startGame", produces = "application/json; charset=UTF-8")
