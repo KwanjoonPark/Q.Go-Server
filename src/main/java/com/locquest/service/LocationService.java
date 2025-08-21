@@ -21,6 +21,24 @@ public class LocationService {
     private final CategoryRepository categoryRepository;
     private final S3Uploader s3Uploader;
 
+    public LocationEntity createLocation(UpLoadLocationRequest request, String savedPath) {
+        // 카테고리 조회
+        CategoryEntity category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다."));
+
+        // 위치 정보 저장
+        LocationEntity location = new LocationEntity();
+        location.setLocName(request.getLocName());
+        location.setLocLat(request.getLatitude());
+        location.setLocLng(request.getLongitude());
+        location.setCategory(category);
+        location.setLocImage(savedPath);
+        location.setLocFailed(0);
+        location.setLocSuccessed(0);
+
+        return locationRepository.save(location);
+    }
+
     public LocationEntity uploadLocation(UpLoadLocationRequest request, MultipartFile imageFile) {
         // 카테고리 조회
         CategoryEntity category = categoryRepository.findById(request.getCategoryId())

@@ -24,7 +24,8 @@ public class RankingController {
             @RequestParam Long categoryId
     ) {
         System.out.println("explorer ranking response 실행");
-        List<ExplorerRankEntry> result = rankingService.getExplorerRanking(categoryId);
+        getExplorerRankingResponse response = rankingService.getExplorerRanking(categoryId);
+        List<ExplorerRankEntry> result = response.getExplorerRankingList();
         System.out.println("explorer ranking 결과: " + result);
         return ResponseEntity.ok(result);
     }
@@ -34,7 +35,8 @@ public class RankingController {
             @RequestParam Long categoryId
     ) {
         System.out.println("timeAttack response 실행");
-        List<TimeAttackRankEntry> result = rankingService.getTimeAttackRanking(categoryId);
+        getTimeAttackRankingResponse response = rankingService.getTimeAttackRanking(categoryId);
+        List<TimeAttackRankEntry> result = response.getTimeAttackRanking();
         System.out.println("timeAttack ranking 결과: " + result);
         return ResponseEntity.ok(result);
     }
