@@ -1,10 +1,26 @@
-# 빌드된 JAR을 직접 사용하는 간단한 Dockerfile
+# Multi-stage build for Railway deployment
+FROM amazoncorretto:21-alpine AS builder
+
+WORKDIR /app
+
+# Gradle 래퍼와 소스 복사
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY src src
+
+# 실행 권한 부여 및 빌드
+RUN chmod +x ./gradlew
+RUN ./gradlew build --no-daemon
+
+# Runtime stage
 FROM amazoncorretto:21-alpine
 
 WORKDIR /app
 
-# 미리 빌드된 JAR 파일 복사
-COPY build/libs/*.jar app.jar
+# 빌드된 JAR 파일 복사
+COPY --from=builder /app/build/libs/*.jar app.jar
 
 # 포트 노출
 EXPOSE 8080
