@@ -1,7 +1,10 @@
-# Multi-stage build for Railway deployment
+# Multi-stage build for Railway deployment v2
 FROM amazoncorretto:21-alpine AS builder
 
 WORKDIR /app
+
+# Install required packages
+RUN apk add --no-cache bash
 
 # Gradle 래퍼와 소스 복사
 COPY gradlew .
@@ -10,9 +13,9 @@ COPY build.gradle .
 COPY settings.gradle .
 COPY src src
 
-# 실행 권한 부여 및 빌드
+# 실행 권한 부여 및 빌드 (테스트 제외)
 RUN chmod +x ./gradlew
-RUN ./gradlew build -x test --no-daemon
+RUN ./gradlew clean build -x test --no-daemon --info
 
 # Runtime stage
 FROM amazoncorretto:21-alpine
