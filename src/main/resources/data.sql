@@ -16,7 +16,7 @@ INSERT INTO location_tbl (loc_name, loc_lat, loc_lng, category_id, loc_image, lo
 INSERT INTO location_tbl (loc_name, loc_lat, loc_lng, category_id, loc_image, loc_failed, loc_successed) VALUES ('바다가 보이는 돌해변', 33.458396, 126.942564, 4, 'https://locquest-bucket.s3.ap-northeast-2.amazonaws.com/%EB%B0%94%EB%8B%A4%EA%B0%80+%EB%B3%B4%EC%9D%B4%EB%8A%94+%EB%8F%8C%ED%95%B4%EB%B3%80.png', 0, 0);
 INSERT INTO location_tbl (loc_name, loc_lat, loc_lng, category_id, loc_image, loc_failed, loc_successed) VALUES ('사건의 수평선', 33.4592586997, 126.9396761997, 4, 'https://locquest-bucket.s3.ap-northeast-2.amazonaws.com/%EC%82%AC%EA%B1%B4%EC%9D%98+%EC%88%98%ED%8F%89%EC%84%A0.jpg', 0, 0);
 INSERT INTO location_tbl (loc_name, loc_lat, loc_lng, category_id, loc_image, loc_failed, loc_successed) VALUES ('일출봉 산책로', 33.505419, 126.496185, 4, 'https://lh3.googleusercontent.com/gps-cs-s/AC9h4nq_I3glDZyGcHZc6K3jpjAWKh30eqMDnePAJOwEYPuBXa2f3da6TxWPx3BFzF6nj3wgJFSKWHcCKrWJ_6u3Ne2T6lRfB0ezyy-QdVXzOOlDIz4qHBnuTM6Kox2jCmJkn5rlaWiE=w408-h306-k-no', 0, 0);
-INSERT INTO location_tbl (loc_name, loc_lat, loc_lng, category_id, loc_image, loc_failed, loc_successed) VALUES ('일출봉 전망대', 33.459842, 126.939519, 4, 'https://locquest-bucket.s3.ap-northeast-2.amazonaws.com/%EC%9D%BC%EC%B6%9C%EB%B4%89+%EC%A0%84%EB%A7%9D%EB%8C%80.png', 0, 0);
+INSERT INTO location_tbl (loc_name, loc_lat, loc_lng, category_id, loc_image, loc_failed, loc_successed) VALUES ('성산 전망대', 33.459842, 126.939519, 4, 'https://locquest-bucket.s3.ap-northeast-2.amazonaws.com/%EC%9D%BC%EC%B6%9C%EB%B4%89+%EC%A0%84%EB%A7%9D%EB%8C%80.png', 0, 0);
 
 -- 샘플 사용자 데이터
 INSERT INTO user_tbl (user_id, nickname, profile_image, registered_date) VALUES (100001, '한정진', 'https://example.com/profile1.jpg', NOW());
